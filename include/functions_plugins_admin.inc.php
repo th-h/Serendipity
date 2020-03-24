@@ -97,6 +97,16 @@ function show_plugins($event_only = false, $sidebars = null)
     $data['serendipity_setFormToken'] = serendipity_setFormToken();
     $data['serendipity_setFormTokenUrl'] = serendipity_setFormToken('url');
 
+    /* load plugin data from Spartacus for additional plugin information */
+    if ($event_only) {
+        $serendipity['GET']['type'] = 'event';
+    } else {
+        $serendipity['GET']['type'] = 'sidebar';
+    }
+    $foreignPlugins = $pluginstack = array();
+    serendipity_plugin_api::hook_event('backend_plugins_fetchlist', $foreignPlugins);
+    $pluginstack = array_merge((array)$foreignPlugins['pluginstack'], $pluginstack);
+
     /* Block display the plugins per placement location. */
     if ($event_only) {
         $plugin_placements = array('event', 'eventh');
@@ -167,6 +177,20 @@ function show_plugins($event_only = false, $sidebars = null)
                 }
                 $desc .= '<span class="block_level"><b>' . ucfirst(AUTHOR)   . '</b>: ' . serendipity_specialchars($bag->get('author')) . '</span>';
                 $desc .= '<span class="block_level"><b>' . ucfirst(VERSION)  . '</b>: ' . $bag->get('version') . '</span>';
+                $source = '';
+                if (isset($foreignPlugins['pluginstack'][$cname[0]])) {
+                    # remote plugin
+                    $source = 'Spartacus';
+                } elseif (serendipity_plugin_api::is_bundled_plugin($cname[0])) {
+                    # bundled plugin
+                    $source = PLUGIN_SOURCE_BUNDLED;
+                } else {
+                    # everything else must be "local"
+                    $source = PLUGIN_SOURCE_LOCAL;
+                }
+                if (!empty($source)) {
+                    $desc .= '<span class="block_level"><b>' . ucfirst(SOURCE)  . '</b>: ' . $source . '</span>';
+                }
                 $desc .= '</details>';
 
                 $title = serendipity_plugin_api::get_plugin_title($plugin, '[' . $name . ']');
