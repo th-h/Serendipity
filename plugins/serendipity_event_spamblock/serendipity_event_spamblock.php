@@ -25,7 +25,7 @@ class serendipity_event_spamblock extends serendipity_event
             'smarty'      => '2.6.7',
             'php'         => '4.1.0'
         ));
-        $propbag->add('version',       '1.88.2');
+        $propbag->add('version',       '1.89.1');
         $propbag->add('event_hooks',    array(
             'frontend_saveComment' => true,
             'external_plugin'      => true,
@@ -469,12 +469,14 @@ class serendipity_event_spamblock extends serendipity_event
 
         // Limit number of banned IPs to prevent .htaccess growing too large. The query selects at max 20*$blocklist_chunksize entries from the last two days.
         $blocklist_chunksize = 177;
-        $q = "SELECT ip FROM {$serendipity['dbPrefix']}spamblock_htaccess WHERE timestamp > " . (time() - 86400*2) . " GROUP BY ip ORDER BY timestamp DESC LIMIT " . 20*$blocklist_chunksize;
+        $q = "SELECT ip, MAX(timestamp) FROM {$serendipity['dbPrefix']}spamblock_htaccess WHERE timestamp > " . (time() - 86400*2) . " GROUP BY ip ORDER BY MAX(timestamp) DESC LIMIT " . 20*$blocklist_chunksize;
         $rows = serendipity_db_query($q, false, 'assoc');
 
         $deny = array();
-        foreach($rows AS $row) {
+        if (is_array($rows)) {
+            foreach($rows AS $row) {
             $deny[] = $row['ip'];
+            }
         }
 
         $hta = $serendipity['serendipityPath'] . '.htaccess';

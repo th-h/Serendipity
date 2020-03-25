@@ -1,6 +1,9 @@
 Version 2.3.6-beta 1 ( )
 ------------------------------------------------------------------------
 
+   * Fix: Modified sql statement used for htaccess blocking to work in
+          MySQL 5.7.
+          Thanks to @fasterit!
 
 Version 2.3.5 (April 25th, 2020)
 ------------------------------------------------------------------------
